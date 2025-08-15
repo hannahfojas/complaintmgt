@@ -107,6 +107,7 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
                 <td style={cell}>{t.status}</td>
                 <td style={cell}>{new Date(t.createdAt).toLocaleString()}</td>
                 <td style={cell}>{t.completionDate ? new Date(t.completionDate).toLocaleString() : '—'}</td>
+                <td style={{ ...cell, textAlign: 'right' }}>{ageDays(t.createdAt, t.completionDate)}</td>
                 <td style={cell}>
                   <button
                     onClick={() => setEditingTask(t)}
