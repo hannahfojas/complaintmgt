@@ -1,130 +1,123 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axiosInstance from '../axiosConfig';
 
 const TaskList = ({ tasks, setTasks, setEditingTask }) => {
   const [loading, setLoading] = useState(true);
   const [errMsg, setErrMsg] = useState('');
-  const token = useMemo(() => localStorage.getItem('token') || '', []);
-
-  const fetchComplaints = async (retries = 3, delayMs = 400) => {
-    setLoading(true);
-    setErrMsg('');
-    for (let attempt = 0; attempt < retries; attempt++) {
-      try {
-        const { data } = await axiosInstance.get('/api/complaints');
-        setTasks(data);
-        setLoading(false);
-        return;
-      } catch (err) {
-        const status = err?.response?.status;
-        const isNetwork = !status;
-        const isServer = status >= 500;
-        if (attempt < retries - 1 && (isNetwork || isServer)) {
-          await new Promise((r) => setTimeout(r, delayMs * Math.pow(2, attempt)));
-          continue;
-        }
-        setErrMsg(
-          status
-            ? `Failed to load complaints (HTTP ${status}).`
-            : 'Network error while loading complaints.'
-        );
-        setLoading(false);
-        return;
-      }
-    }
-  };
+  const [statusFilter, setStatusFilter] = useState('All');
 
   useEffect(() => {
-    const t = setTimeout(() => fetchComplaints(), token ? 0 : 300);
-    return () => clearTimeout(t);
-  }, [token, setTasks]);
+    setLoading(true);
+    setErrMsg('');
+    axiosInstance
+      .get('/api/complaints', {
+        params: statusFilter === 'All' ? {} : { status: statusFilter }
+      })
+      .then((res) => {
+        setTasks(res.data || []);
+      })
+      .catch(() => {
+        setErrMsg('Failed to load complaints.');
+      })
+      .finally(() => setLoading(false));
+  }, [statusFilter, setTasks]);
 
   const closeNoResolution = async (id) => {
-    if (!window.confirm('Close this complaint without resolution?')) return;
+    const note = window.prompt('Enter a resolution note (required):', '');
+    if (!note || !note.trim()) { alert('Resolution note is required.'); return; }
     try {
-      const { data } = await axiosInstance.patch(`/api/complaints/${id}/close-no-resolution`);
-      setTasks((prev) => prev.map((t) => (t._id === id ? data : t)));
+      const { data: closed } = await axiosInstance.patch(`/api/complaints/${id}/close-no-resolution`);
+      const { data: withNote } = await axiosInstance.post(`/api/complaints/${id}/notes`, {
+        text: note.trim(),
+        author: 'Staff'
+      });
+      setTasks((prev) => prev.map((t) => (t._id === id ? withNote : t)));
     } catch (err) {
       const status = err?.response?.status;
       alert(status ? `Failed to close (HTTP ${status}).` : 'Network error.');
     }
   };
 
+  const cell = { whiteSpace: 'nowrap', padding: '4px 6px', border: '1px solid #ddd' };
+  const small = { fontSize: '12px' };
+  const titleCell = { ...cell, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' };
+
   return (
-    <div className="mt-6 overflow-x-auto">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="font-semibold">Complaints</h2>
-        <button
-          className="px-2 py-1 border rounded hover:bg-gray-50"
-          onClick={() => fetchComplaints()}
-          disabled={loading}
-          title="Refresh"
-        >
-          {loading ? 'Loading…' : 'Refresh'}
-        </button>
+    <div style={{ marginTop: 16, overflowX: 'auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+        <h2 style={{ ...small, fontWeight: 600, margin: 0 }}>Complaints</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <label htmlFor="statusFilter" style={{ ...small, opacity: 0.8 }}>Status:</label>
+          <select
+            id="statusFilter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{ ...small, padding: '4px 6px', border: '1px solid #ccc', borderRadius: 4 }}
+          >
+            <option>All</option>
+            <option>Open</option>
+            <option>In Progress</option>
+            <option>Resolved</option>
+            <option>Closed - No Resolution</option>
+          </select>
+        </div>
       </div>
 
       {errMsg && (
-        <div className="mb-3 text-sm text-red-700 bg-red-50 border border-red-200 p-2 rounded">
+        <div style={{ ...small, color: '#991b1b', background: '#fee2e2', border: '1px solid #fecaca', padding: 6, borderRadius: 4, marginBottom: 8 }}>
           {errMsg}
         </div>
       )}
 
-      <table className="min-w-full border border-gray-300 text-sm">
-        <thead className="bg-gray-100">
+      <table style={{ width: '100%', borderCollapse: 'collapse', ...small, border: '1px solid #ddd' }}>
+        <thead style={{ background: '#f3f4f6' }}>
           <tr>
-            <th className="border p-2">Complainant</th>
-            <th className="border p-2">Email</th>
-            <th className="border p-2">Phone</th>
-            <th className="border p-2">Title</th>
-            <th className="border p-2">Category</th>
-            <th className="border p-2">Assigned To</th>
-            <th className="border p-2">Status</th>
-            <th className="border p-2">Created</th>
-            <th className="border p-2">Actions</th>
+            <th style={cell}>Complainant</th>
+            <th style={cell}>Email</th>
+            <th style={cell}>Phone</th>
+            <th style={cell}>Title</th>
+            <th style={cell}>Category</th>
+            <th style={cell}>Assigned To</th>
+            <th style={cell}>Status</th>
+            <th style={cell}>Created</th>
+            <th style={cell}>Completed</th>
+            <th style={cell}>Actions</th>
           </tr>
         </thead>
         <tbody>
           {loading ? (
-            <tr>
-              <td colSpan="9" className="border p-4 text-center text-gray-500">
-                Loading…
-              </td>
-            </tr>
+            <tr><td style={{ ...cell, textAlign: 'center' }} colSpan="10">Loading…</td></tr>
           ) : tasks && tasks.length > 0 ? (
             tasks.map((t) => (
-              <tr key={t._id} className="hover:bg-gray-50">
-                <td className="border p-2">{t.complainantName}</td>
-                <td className="border p-2">{t.email}</td>
-                <td className="border p-2">{t.phoneNumber}</td>
-                <td className="border p-2">{t.title}</td>
-                <td className="border p-2">{t.category}</td>
-                <td className="border p-2">{t.assignedTo || '—'}</td>
-                <td className="border p-2">{t.status}</td>
-                <td className="border p-2">{new Date(t.createdAt).toLocaleString()}</td>
-                <td className="border p-2 space-x-2">
+              <tr key={t._id} style={{ background: '#fff' }}>
+                <td style={cell}>{t.complainantName}</td>
+                <td style={cell}>{t.email}</td>
+                <td style={cell}>{t.phoneNumber}</td>
+                <td style={titleCell} title={t.title}>{t.title}</td>
+                <td style={cell}>{t.category}</td>
+                <td style={cell}>{t.assignedTo || '—'}</td>
+                <td style={cell}>{t.status}</td>
+                <td style={cell}>{new Date(t.createdAt).toLocaleString()}</td>
+                <td style={cell}>{t.completionDate ? new Date(t.completionDate).toLocaleString() : '—'}</td>
+                <td style={cell}>
                   <button
-                    className="px-2 py-1 border rounded text-yellow-800 bg-yellow-300 hover:bg-yellow-400"
                     onClick={() => setEditingTask(t)}
+                    style={{ ...small, padding: '3px 6px', border: '1px solid #d97706', background: '#fde68a', borderRadius: 4, marginRight: 4 }}
                   >
                     Edit
                   </button>
                   <button
-                    className="px-2 py-1 border rounded text-gray-700 bg-gray-300 hover:bg-gray-400 disabled:opacity-50"
                     onClick={() => closeNoResolution(t._id)}
                     disabled={t.status === 'Resolved' || t.status === 'Closed - No Resolution'}
+                    style={{ ...small, padding: '3px 6px', border: '1px solid #9ca3af', background: '#e5e7eb', borderRadius: 4, opacity: (t.status === 'Resolved' || t.status === 'Closed - No Resolution') ? 0.6 : 1 }}
                   >
-                    Close w/o Resolution
+                    Close w/o Res.
                   </button>
                 </td>
               </tr>
             ))
           ) : (
-            <tr>
-              <td colSpan="9" className="border p-4 text-center text-gray-500">
-                No complaints found.
-              </td>
-            </tr>
+            <tr><td style={{ ...cell, textAlign: 'center' }} colSpan="10">No complaints found.</td></tr>
           )}
         </tbody>
       </table>
