@@ -6,6 +6,13 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
   const [errMsg, setErrMsg] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
 
+  function ageDays(createdAt, completionDate) {
+    const start = new Date(createdAt);
+    const end = completionDate ? new Date(completionDate) : new Date();
+    const diff = end - start;
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  }
+
   useEffect(() => {
     setLoading(true);
     setErrMsg('');
@@ -23,19 +30,19 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
   }, [statusFilter, setTasks]);
 
   const closeNoResolution = async (id) => {
-    const note = window.prompt('Enter a resolution note (required):', '');
-    if (!note || !note.trim()) { alert('Resolution note is required.'); return; }
-    try {
-      const { data: closed } = await axiosInstance.patch(`/api/complaints/${id}/close-no-resolution`);
-      const { data: withNote } = await axiosInstance.post(`/api/complaints/${id}/notes`, {
-        text: note.trim(),
-        author: 'Staff'
-      });
-      setTasks((prev) => prev.map((t) => (t._id === id ? withNote : t)));
-    } catch (err) {
-      const status = err?.response?.status;
-      alert(status ? `Failed to close (HTTP ${status}).` : 'Network error.');
-    }
+  const note = window.prompt('Enter a resolution note (required):', '');
+  if (!note || !note.trim()) { alert('Resolution note is required.'); return; }
+  try {
+    const { data: closed } = await axiosInstance.patch(`/api/complaints/${id}/close-no-resolution`);
+    const { data: withNote } = await axiosInstance.post(`/api/complaints/${id}/notes`, {
+      text: note.trim(),
+      author: 'Staff'
+    });
+    setTasks((prev) => prev.map((t) => (t._id === id ? withNote : t)));
+  } catch (err) {
+    const status = err?.response?.status;
+    alert(status ? `Failed to close (HTTP ${status}).` : 'Network error.');
+  }
   };
 
   const cell = { whiteSpace: 'nowrap', padding: '4px 6px', border: '1px solid #ddd' };
@@ -81,12 +88,13 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
             <th style={cell}>Status</th>
             <th style={cell}>Created</th>
             <th style={cell}>Completed</th>
+            <th style={cell}>Age (days)</th>
             <th style={cell}>Actions</th>
           </tr>
         </thead>
         <tbody>
           {loading ? (
-            <tr><td style={{ ...cell, textAlign: 'center' }} colSpan="10">Loading…</td></tr>
+            <tr><td style={{ ...cell, textAlign: 'center' }} colSpan="11">Loading…</td></tr>
           ) : tasks && tasks.length > 0 ? (
             tasks.map((t) => (
               <tr key={t._id} style={{ background: '#fff' }}>
@@ -117,7 +125,7 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
               </tr>
             ))
           ) : (
-            <tr><td style={{ ...cell, textAlign: 'center' }} colSpan="10">No complaints found.</td></tr> //this is the subtask 6.3
+            <tr><td style={{ ...cell, textAlign: 'center' }} colSpan="11">No complaints found.</td></tr>
           )}
         </tbody>
       </table>
