@@ -16,6 +16,7 @@ const TaskForm = ({ tasks = [], setTasks }) => {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  //this is for text validate
   const validate = () => {
     const errs = [];
     if (!form.complainantName.trim()) errs.push('Complainant Name');
