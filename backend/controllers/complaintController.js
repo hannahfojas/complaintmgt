@@ -35,8 +35,36 @@ const getComplaints = async (req, res) => {
   }
 };
 
+// Update Complaint Details
+const updateComplaintDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatable = [
+      'complainantName',
+      'email',
+      'phoneNumber',
+      'title',
+      'description',
+      'category',
+      'assignedTo'
+    ];
+    const update = {};
+    for (const k of updatable) {
+      if (k in req.body) update[k] = req.body[k];
+    }
+    const doc = await Complaint.findByIdAndUpdate(id, update, {
+      new: true,
+      runValidators: true
+    });
+    if (!doc) return res.status(404).json({ message: 'Complaint not found' });
+    res.json(doc);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
 
 module.exports = {
   createComplaint,
   getComplaints,
+  updateComplaintDetails,
 };
