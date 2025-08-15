@@ -23,11 +23,11 @@ const createComplaint = async (req, res) => {
 
 const getComplaints = async (req, res) => {
   try {
-    const q = {};
-    if (req.query.status) q.status = req.query.status;
-    if (req.query.category) q.category = req.query.category;
-    const docs = await Complaint.find(q).sort({ createdAt: -1 });
-    res.json(docs);
+    const filter = req.query.status && req.query.status !== 'All'
+      ? { status: req.query.status }
+      : {};
+    const complaints = await Complaint.find(filter).sort({ createdAt: -1 });
+    res.json(complaints);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
