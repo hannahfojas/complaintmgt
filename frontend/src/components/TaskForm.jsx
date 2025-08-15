@@ -1,70 +1,81 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
 import axiosInstance from '../axiosConfig';
 
-const TaskForm = ({ tasks, setTasks, editingTask, setEditingTask }) => {
-  const { user } = useAuth();
-  const [formData, setFormData] = useState({ title: '', description: '', deadline: '' });
+const TaskForm = ({ tasks = [], setTasks }) => {
+  const [form, setForm] = useState({
+    complainantName: '',
+    email: '',
+    phoneNumber: '',
+    title: '',
+    description: '',
+    category: 'Low',
+    assignedTo: '',
+    status: 'Open'
+  });
 
-  useEffect(() => {
-    if (editingTask) {
-      setFormData({
-        title: editingTask.title,
-        description: editingTask.description,
-        deadline: editingTask.deadline,
-      });
-    } else {
-      setFormData({ title: '', description: '', deadline: '' });
-    }
-  }, [editingTask]);
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const validate = () => {
+    const errs = [];
+    if (!form.complainantName.trim()) errs.push('Complainant Name');
+    if (!/\S+@\S+\.\S+/.test(form.email)) errs.push('Valid Email');
+    if (!form.phoneNumber.trim()) errs.push('Phone Number');
+    if (!form.title.trim()) errs.push('Title');
+    if (!form.category.trim()) errs.push('Category');
+    return errs;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errs = validate();
+    if (errs.length) {
+      alert('Please provide: ' + errs.join(', '));
+      return;
+    }
     try {
-      if (editingTask) {
-        const response = await axiosInstance.put(`/api/tasks/${editingTask._id}`, formData, {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
-        setTasks(tasks.map((task) => (task._id === response.data._id ? response.data : task)));
-      } else {
-        const response = await axiosInstance.post('/api/tasks', formData, {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
-        setTasks([...tasks, response.data]);
-      }
-      setEditingTask(null);
-      setFormData({ title: '', description: '', deadline: '' });
-    } catch (error) {
-      alert('Failed to save task.');
+      const createPayload = {
+        complainantName: form.complainantName,
+        email: form.email,
+        phoneNumber: form.phoneNumber,
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        assignedTo: form.assignedTo
+      };
+      const { data } = await axiosInstance.post('/api/complaints', createPayload);
+      setTasks((prev) => [data, ...prev]);
+      setForm({
+        complainantName: '',
+        email: '',
+        phoneNumber: '',
+        title: '',
+        description: '',
+        category: 'Low',
+        assignedTo: '',
+        status: 'Open'
+      });
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Save failed.';
+      alert(msg);
+      console.error(err);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 shadow-md rounded mb-6">
-      <h1 className="text-2xl font-bold mb-4">{editingTask ? 'Your Form Name: Edit Operation' : 'Your Form Name: Create Operation'}</h1>
-      <input
-        type="text"
-        placeholder="Title"
-        value={formData.title}
-        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-        className="w-full mb-4 p-2 border rounded"
-      />
-      <input
-        type="text"
-        placeholder="Description"
-        value={formData.description}
-        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-        className="w-full mb-4 p-2 border rounded"
-      />
-      <input
-        type="date"
-        value={formData.deadline}
-        onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-        className="w-full mb-4 p-2 border rounded"
-      />
-      <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
-        {editingTask ? 'Update Button' : 'Create Button'}
-      </button>
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4 border rounded mb-8">
+      <input name="complainantName" value={form.complainantName} onChange={handleChange} placeholder="Complainant Name" required className="w-full p-2 border mb-2" />
+      <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="Email" required className="w-full p-2 border mb-2" />
+      <input name="phoneNumber" value={form.phoneNumber} onChange={handleChange} placeholder="Phone Number" required className="w-full p-2 border mb-2" />
+      <input name="title" value={form.title} onChange={handleChange} placeholder="Complaint Title" required className="w-full p-2 border mb-2" />
+      <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" className="w-full p-2 border mb-2" rows={3} />
+      <select name="category" value={form.category} onChange={handleChange} className="w-full p-2 border mb-2">
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+      </select>
+      <input name="assignedTo" value={form.assignedTo} onChange={handleChange} placeholder="Assigned To" className="w-full p-2 border mb-2" />
+      <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">Add Complaint</button>
     </form>
   );
 };
