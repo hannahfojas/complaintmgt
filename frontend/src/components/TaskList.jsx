@@ -39,6 +39,17 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
     return () => clearTimeout(t);
   }, [token, setTasks]);
 
+  const closeNoResolution = async (id) => {
+    if (!window.confirm('Close this complaint without resolution?')) return;
+    try {
+      const { data } = await axiosInstance.patch(`/api/complaints/${id}/close-no-resolution`);
+      setTasks((prev) => prev.map((t) => (t._id === id ? data : t)));
+    } catch (err) {
+      const status = err?.response?.status;
+      alert(status ? `Failed to close (HTTP ${status}).` : 'Network error.');
+    }
+  };
+
   return (
     <div className="mt-6 overflow-x-auto">
       <div className="flex items-center justify-between mb-3">
@@ -97,6 +108,13 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
                     onClick={() => setEditingTask(t)}
                   >
                     Edit
+                  </button>
+                  <button
+                    className="px-2 py-1 border rounded text-gray-700 bg-gray-300 hover:bg-gray-400 disabled:opacity-50"
+                    onClick={() => closeNoResolution(t._id)}
+                    disabled={t.status === 'Resolved' || t.status === 'Closed - No Resolution'}
+                  >
+                    Close w/o Resolution
                   </button>
                 </td>
               </tr>
