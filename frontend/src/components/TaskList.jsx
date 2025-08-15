@@ -117,7 +117,7 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
               </tr>
             ))
           ) : (
-            <tr><td style={{ ...cell, textAlign: 'center' }} colSpan="10">No complaints found.</td></tr>
+            <tr><td style={{ ...cell, textAlign: 'center' }} colSpan="10">No complaints found.</td></tr> //this is the subtask 6.3
           )}
         </tbody>
       </table>
