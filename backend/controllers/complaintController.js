@@ -1,6 +1,5 @@
 const Complaint = require('../models/Complaint');
 
-// Create Complaint
 const createComplaint = async (req, res) => {
   try {
     const payload = {
@@ -22,7 +21,6 @@ const createComplaint = async (req, res) => {
   }
 };
 
-// Get Complaints
 const getComplaints = async (req, res) => {
   try {
     const q = {};
@@ -35,7 +33,6 @@ const getComplaints = async (req, res) => {
   }
 };
 
-// Update Complaint Details
 const updateComplaintDetails = async (req, res) => {
   try {
     const { id } = req.params;
@@ -63,30 +60,54 @@ const updateComplaintDetails = async (req, res) => {
   }
 };
 
-// Close Without Resolution
 const closeWithoutResolution = async (req, res) => {
   try {
     const { id } = req.params;
     const doc = await Complaint.findById(id);
     if (!doc) return res.status(404).json({ message: 'Complaint not found' });
-
     if (doc.status === 'Resolved' || doc.status === 'Closed - No Resolution') {
       return res.json(doc);
     }
-
     doc.status = 'Closed - No Resolution';
     doc.completionDate = new Date();
     await doc.save();
-
     res.json(doc);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
 
+const updateComplaintStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const allowed = ['Open', 'In Progress', 'Resolved', 'Closed - No Resolution'];
+    if (!allowed.includes(status)) return res.status(400).json({ message: 'Invalid status' });
+
+    const doc = await Complaint.findById(id);
+    if (!doc) return res.status(404).json({ message: 'Complaint not found' });
+
+    // allow transitions from/to any state
+    doc.status = status;
+    if (status === 'Resolved' || status === 'Closed - No Resolution') {
+      doc.completionDate = new Date();
+    } else {
+      doc.completionDate = null;
+    }
+
+    await doc.save();
+    res.json(doc);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+
 module.exports = {
   createComplaint,
   getComplaints,
   updateComplaintDetails,
-  closeWithoutResolution
+  closeWithoutResolution,
+  updateComplaintStatus,
 };
