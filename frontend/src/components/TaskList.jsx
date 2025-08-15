@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import axiosInstance from '../axiosConfig';
 
-const TaskList = ({ tasks, setTasks }) => {
+const TaskList = ({ tasks, setTasks, setEditingTask }) => {
   const [loading, setLoading] = useState(true);
   const [errMsg, setErrMsg] = useState('');
   const token = useMemo(() => localStorage.getItem('token') || '', []);
@@ -70,12 +70,13 @@ const TaskList = ({ tasks, setTasks }) => {
             <th className="border p-2">Assigned To</th>
             <th className="border p-2">Status</th>
             <th className="border p-2">Created</th>
+            <th className="border p-2">Actions</th>
           </tr>
         </thead>
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan="8" className="border p-4 text-center text-gray-500">
+              <td colSpan="9" className="border p-4 text-center text-gray-500">
                 Loading…
               </td>
             </tr>
@@ -90,11 +91,19 @@ const TaskList = ({ tasks, setTasks }) => {
                 <td className="border p-2">{t.assignedTo || '—'}</td>
                 <td className="border p-2">{t.status}</td>
                 <td className="border p-2">{new Date(t.createdAt).toLocaleString()}</td>
+                <td className="border p-2 space-x-2">
+                  <button
+                    className="px-2 py-1 border rounded text-yellow-800 bg-yellow-300 hover:bg-yellow-400"
+                    onClick={() => setEditingTask(t)}
+                  >
+                    Edit
+                  </button>
+                </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="8" className="border p-4 text-center text-gray-500">
+              <td colSpan="9" className="border p-4 text-center text-gray-500">
                 No complaints found.
               </td>
             </tr>
