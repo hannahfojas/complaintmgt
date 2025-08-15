@@ -23,11 +23,11 @@ const createComplaint = async (req, res) => {
 
 const getComplaints = async (req, res) => {
   try {
-    const filter = req.query.status && req.query.status !== 'All'
-      ? { status: req.query.status }
-      : {};
-    const complaints = await Complaint.find(filter).sort({ createdAt: -1 });
-    res.json(complaints);
+    const q = {};
+    if (req.query.status) q.status = req.query.status;
+    if (req.query.category) q.category = req.query.category;
+    const docs = await Complaint.find(q).sort({ createdAt: -1 });
+    res.json(docs);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -103,6 +103,25 @@ const updateComplaintStatus = async (req, res) => {
   }
 };
 
+const addResolutionNote = async (req, res) => {
+  try {
+    const { text, author } = req.body;
+    if (!text || !text.trim()) return res.status(400).json({ message: 'Note text is required' });
+
+    const doc = await Complaint.findById(req.params.id);
+    if (!doc) return res.status(404).json({ message: 'Not found' });
+
+    const done = doc.status === 'Resolved' || doc.status === 'Closed - No Resolution';
+    if (!done) return res.status(400).json({ message: 'Allowed only when complaint is completed' });
+
+    doc.resolutionNotes = doc.resolutionNotes || [];
+    doc.resolutionNotes.push({ text: text.trim(), author: (author || 'Staff').trim() });
+    const updated = await doc.save();
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 module.exports = {
   createComplaint,
@@ -110,4 +129,5 @@ module.exports = {
   updateComplaintDetails,
   closeWithoutResolution,
   updateComplaintStatus,
+  addResolutionNote
 };
