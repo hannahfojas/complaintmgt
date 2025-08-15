@@ -1,5 +1,6 @@
 const Complaint = require('../models/Complaint');
 
+// Create Complaint
 const createComplaint = async (req, res) => {
   try {
     const payload = {
@@ -21,6 +22,21 @@ const createComplaint = async (req, res) => {
   }
 };
 
+// Get Complaints
+const getComplaints = async (req, res) => {
+  try {
+    const q = {};
+    if (req.query.status) q.status = req.query.status;
+    if (req.query.category) q.category = req.query.category;
+    const docs = await Complaint.find(q).sort({ createdAt: -1 });
+    res.json(docs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 module.exports = {
   createComplaint,
+  getComplaints,
 };
