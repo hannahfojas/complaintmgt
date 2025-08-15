@@ -63,8 +63,30 @@ const updateComplaintDetails = async (req, res) => {
   }
 };
 
+// Close Without Resolution
+const closeWithoutResolution = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await Complaint.findById(id);
+    if (!doc) return res.status(404).json({ message: 'Complaint not found' });
+
+    if (doc.status === 'Resolved' || doc.status === 'Closed - No Resolution') {
+      return res.json(doc);
+    }
+
+    doc.status = 'Closed - No Resolution';
+    doc.completionDate = new Date();
+    await doc.save();
+
+    res.json(doc);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
 module.exports = {
   createComplaint,
   getComplaints,
   updateComplaintDetails,
+  closeWithoutResolution
 };
