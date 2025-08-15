@@ -1,20 +1,12 @@
 const mongoose = require('mongoose');
 
-const ResolutionNoteSchema = new mongoose.Schema(
-  {
-    text: { type: String, required: true },
-    author: { type: String, default: '' }
-  },
-  { _id: false, timestamps: true }
-);
-
 const ComplaintSchema = new mongoose.Schema(
   {
-    complainantName: { type: String, required: true },
-    email: { type: String, required: true, lowercase: true },
-    phoneNumber: { type: String, required: true },
-    title: { type: String, required: true },
-    description: { type: String, required: true },
+    complainantName: { type: String, required: true, trim: true },
+    email: { type: String, required: true, lowercase: true, trim: true },
+    phoneNumber: { type: String, required: true, trim: true },
+    title: { type: String, required: true, trim: true },
+    description: { type: String, required: true, trim: true },
     category: { type: String, enum: ['Low', 'Medium', 'High'], default: 'Low' },
     assignedTo: { type: String, default: '' },
     status: {
@@ -23,8 +15,7 @@ const ComplaintSchema = new mongoose.Schema(
       default: 'Open'
     },
     completionDate: { type: Date, default: null },
-    resolutionNote: { type: String, default: '' },
-    resolutionNotes: { type: [ResolutionNoteSchema], default: [] }
+    resolutionNote: { type: String, default: '' } // will stay unused until US8
   },
   { timestamps: true, versionKey: false }
 );
