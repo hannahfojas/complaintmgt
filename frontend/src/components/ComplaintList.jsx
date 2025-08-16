@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axiosInstance from '../axiosConfig';
 
-const TaskList = ({ tasks, setTasks, setEditingTask }) => {
+const ComplaintList = ({ complaints, setComplaints, setEditingComplaint }) => {
   const [loading, setLoading] = useState(true);
   const [errMsg, setErrMsg] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -21,13 +21,13 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
         params: statusFilter === 'All' ? {} : { status: statusFilter }
       })
       .then((res) => {
-        setTasks(res.data || []);
+        setComplaints(res.data || []);
       })
       .catch(() => {
         setErrMsg('Failed to load complaints.');
       })
       .finally(() => setLoading(false));
-  }, [statusFilter, setTasks]);
+  }, [statusFilter, setComplaints]);
 
   const closeNoResolution = async (id) => {
   const note = window.prompt('Enter a resolution note (required):', '');
@@ -38,7 +38,7 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
       text: note.trim(),
       author: 'Staff'
     });
-    setTasks((prev) => prev.map((t) => (t._id === id ? withNote : t)));
+    setComplaints((prev) => prev.map((t) => (t._id === id ? withNote : t)));
   } catch (err) {
     const status = err?.response?.status;
     alert(status ? `Failed to close (HTTP ${status}).` : 'Network error.');
@@ -95,8 +95,8 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
         <tbody>
           {loading ? (
             <tr><td style={{ ...cell, textAlign: 'center' }} colSpan="11">Loading…</td></tr>
-          ) : tasks && tasks.length > 0 ? (
-            tasks.map((t) => (
+          ) : complaints && complaints.length > 0 ? (
+            complaints.map((t) => (
               <tr key={t._id} style={{ background: '#fff' }}>
                 <td style={cell}>{t.complainantName}</td>
                 <td style={cell}>{t.email}</td>
@@ -110,7 +110,7 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
                 <td style={{ ...cell, textAlign: 'right' }}>{ageDays(t.createdAt, t.completionDate)}</td>
                 <td style={cell}>
                   <button
-                    onClick={() => setEditingTask(t)}
+                    onClick={() => setEditingComplaint(t)}
                     style={{ ...small, padding: '3px 6px', border: '1px solid #d97706', background: '#fde68a', borderRadius: 4, marginRight: 4 }}
                   >
                     Edit
@@ -134,4 +134,4 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
   );
 };
 
-export default TaskList;
+export default ComplaintList;

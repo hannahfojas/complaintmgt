@@ -14,8 +14,8 @@ const createComplaint = async (req, res) => {
       completionDate: null,
       resolutionNote: ''
     };
-    const doc = await Complaint.create(payload);
-    res.status(201).json(doc);
+    const complaint = await Complaint.create(payload);
+    res.status(201).json(complaint);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -26,8 +26,8 @@ const getComplaints = async (req, res) => {
     const q = {};
     if (req.query.status) q.status = req.query.status;
     if (req.query.category) q.category = req.query.category;
-    const docs = await Complaint.find(q).sort({ createdAt: -1 });
-    res.json(docs);
+    const complaints = await Complaint.find(q).sort({ createdAt: -1 });
+    res.json(complaints);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -49,12 +49,12 @@ const updateComplaintDetails = async (req, res) => {
     for (const k of updatable) {
       if (k in req.body) update[k] = req.body[k];
     }
-    const doc = await Complaint.findByIdAndUpdate(id, update, {
+    const complaint = await Complaint.findByIdAndUpdate(id, update, {
       new: true,
       runValidators: true
     });
-    if (!doc) return res.status(404).json({ message: 'Complaint not found' });
-    res.json(doc);
+    if (!complaint) return res.status(404).json({ message: 'Complaint not found' });
+    res.json(complaint);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -63,15 +63,15 @@ const updateComplaintDetails = async (req, res) => {
 const closeWithoutResolution = async (req, res) => {
   try {
     const { id } = req.params;
-    const doc = await Complaint.findById(id);
-    if (!doc) return res.status(404).json({ message: 'Complaint not found' });
-    if (doc.status === 'Resolved' || doc.status === 'Closed - No Resolution') {
-      return res.json(doc);
+    const complaint = await Complaint.findById(id);
+    if (!complaint) return res.status(404).json({ message: 'Complaint not found' });
+    if (complaint.status === 'Resolved' || complaint.status === 'Closed - No Resolution') {
+      return res.json(complaint);
     }
-    doc.status = 'Closed - No Resolution';
-    doc.completionDate = new Date();
-    await doc.save();
-    res.json(doc);
+    complaint.status = 'Closed - No Resolution';
+    complaint.completionDate = new Date();
+    await complaint.save();
+    res.json(complaint);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -85,19 +85,19 @@ const updateComplaintStatus = async (req, res) => {
     const allowed = ['Open', 'In Progress', 'Resolved', 'Closed - No Resolution'];
     if (!allowed.includes(status)) return res.status(400).json({ message: 'Invalid status' });
 
-    const doc = await Complaint.findById(id);
-    if (!doc) return res.status(404).json({ message: 'Complaint not found' });
+    const complaint = await Complaint.findById(id);
+    if (!complaint) return res.status(404).json({ message: 'Complaint not found' });
 
     // allow transitions from/to any state
-    doc.status = status;
+    complaint.status = status;
     if (status === 'Resolved' || status === 'Closed - No Resolution') {
-      doc.completionDate = new Date();
+      complaint.completionDate = new Date();
     } else {
-      doc.completionDate = null;
+      complaint.completionDate = null;
     }
 
-    await doc.save();
-    res.json(doc);
+    await complaint.save();
+    res.json(complaint);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -108,15 +108,15 @@ const addResolutionNote = async (req, res) => {
     const { text, author } = req.body;
     if (!text || !text.trim()) return res.status(400).json({ message: 'Note text is required' });
 
-    const doc = await Complaint.findById(req.params.id);
-    if (!doc) return res.status(404).json({ message: 'Not found' });
+    const complaint = await Complaint.findById(req.params.id);
+    if (!complaint) return res.status(404).json({ message: 'Not found' });
 
-    const done = doc.status === 'Resolved' || doc.status === 'Closed - No Resolution';
+    const done = complaint.status === 'Resolved' || complaint.status === 'Closed - No Resolution';
     if (!done) return res.status(400).json({ message: 'Allowed only when complaint is completed' });
 
-    doc.resolutionNotes = doc.resolutionNotes || [];
-    doc.resolutionNotes.push({ text: text.trim(), author: (author || 'Staff').trim() });
-    const updated = await doc.save();
+    complaint.resolutionNotes = complaint.resolutionNotes || [];
+    complaint.resolutionNotes.push({ text: text.trim(), author: (author || 'Staff').trim() });
+    const updated = await complaint.save();
     res.json(updated);
   } catch (err) {
     res.status(500).json({ message: err.message });

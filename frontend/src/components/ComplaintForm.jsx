@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axiosInstance from '../axiosConfig';
 
-const TaskForm = ({ tasks, setTasks, editingTask, setEditingTask }) => {
+const ComplaintForm = ({ complaints, setComplaints, editingComplaint, setEditingComplaint }) => {
   const [form, setForm] = useState({
     complainantName: '',
     email: '',
@@ -14,16 +14,16 @@ const TaskForm = ({ tasks, setTasks, editingTask, setEditingTask }) => {
   });
 
   useEffect(() => {
-    if (editingTask) {
+    if (editingComplaint) {
       setForm({
-        complainantName: editingTask.complainantName || '',
-        email: editingTask.email || '',
-        phoneNumber: editingTask.phoneNumber || '',
-        title: editingTask.title || '',
-        description: editingTask.description || '',
-        category: editingTask.category || 'Low',
-        assignedTo: editingTask.assignedTo || '',
-        status: editingTask.status || 'Open'
+        complainantName: editingComplaint.complainantName || '',
+        email: editingComplaint.email || '',
+        phoneNumber: editingComplaint.phoneNumber || '',
+        title: editingComplaint.title || '',
+        description: editingComplaint.description || '',
+        category: editingComplaint.category || 'Low',
+        assignedTo: editingComplaint.assignedTo || '',
+        status: editingComplaint.status || 'Open'
       });
     } else {
       setForm({
@@ -37,7 +37,7 @@ const TaskForm = ({ tasks, setTasks, editingTask, setEditingTask }) => {
         status: 'Open'
       });
     }
-  }, [editingTask]);
+  }, [editingComplaint]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -49,8 +49,8 @@ const TaskForm = ({ tasks, setTasks, editingTask, setEditingTask }) => {
   const handleSubmit = async (e) => {
   e.preventDefault();
   try {
-    if (editingTask) {
-      const { _id } = editingTask;
+    if (editingComplaint) {
+      const { _id } = editingComplaint;
 
       const detailsPayload = {
         complainantName: form.complainantName,
@@ -64,7 +64,7 @@ const TaskForm = ({ tasks, setTasks, editingTask, setEditingTask }) => {
       const { data: updatedDetails } = await axiosInstance.put(`/api/complaints/${_id}`, detailsPayload);
       let updatedDoc = updatedDetails;
 
-      const statusChanged = form.status !== editingTask.status;
+      const statusChanged = form.status !== editingComplaint.status;
       const targetCompleted = form.status === 'Resolved' || form.status === 'Closed - No Resolution';
 
       if (statusChanged && targetCompleted) {
@@ -86,7 +86,7 @@ const TaskForm = ({ tasks, setTasks, editingTask, setEditingTask }) => {
         updatedDoc = updatedStatus;
       } else {
         const isCompletedNow = updatedDoc.status === 'Resolved' || updatedDoc.status === 'Closed - No Resolution';
-        const noteChanged = (form.resolutionNote || '') !== (editingTask.resolutionNote || '');
+        const noteChanged = (form.resolutionNote || '') !== (editingComplaint.resolutionNote || '');
         if (isCompletedNow && noteChanged && (form.resolutionNote || '').trim()) {
           const { data: withNote } = await axiosInstance.post(`/api/complaints/${_id}/notes`, {
             text: form.resolutionNote.trim(),
@@ -96,8 +96,8 @@ const TaskForm = ({ tasks, setTasks, editingTask, setEditingTask }) => {
         }
       }
 
-      setTasks(prev => prev.map(t => (t._id === _id ? updatedDoc : t)));
-      setEditingTask(null);
+      setComplaints(prev => prev.map(t => (t._id === _id ? updatedDoc : t)));
+      setEditingComplaint(null);
     } else {
       const createPayload = {
         complainantName: form.complainantName,
@@ -109,7 +109,7 @@ const TaskForm = ({ tasks, setTasks, editingTask, setEditingTask }) => {
         assignedTo: form.assignedTo
       };
       const { data } = await axiosInstance.post('/api/complaints', createPayload);
-      setTasks(prev => [data, ...prev]);
+      setComplaints(prev => [data, ...prev]);
     }
 
     setForm({
@@ -149,8 +149,8 @@ const TaskForm = ({ tasks, setTasks, editingTask, setEditingTask }) => {
         value={form.status}
         onChange={handleChange}
         className="w-full p-2 border mb-2"
-        disabled={!editingTask}
-        title={editingTask ? 'Update status' : 'Status set automatically to Open on create'}
+        disabled={!editingComplaint}
+        title={editingComplaint ? 'Update status' : 'Status set automatically to Open on create'}
       >
         <option value="Open">Open</option>
         <option value="In Progress">In Progress</option>
@@ -159,10 +159,10 @@ const TaskForm = ({ tasks, setTasks, editingTask, setEditingTask }) => {
       </select>
 
       <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
-        {editingTask ? 'Update Complaint' : 'Add Complaint'}
+        {editingComplaint ? 'Update Complaint' : 'Add Complaint'}
       </button>
     </form>
   );
 };
 
-export default TaskForm;
+export default ComplaintForm;
