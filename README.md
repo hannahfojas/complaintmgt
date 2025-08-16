@@ -35,16 +35,17 @@ Aside from the the User Management features of the system, the following feature
 * VS Code Editor
 * Github
 
-Please run the following commands in your command line:
+Please run the following commands in your command line.
+
 Clone the Original Repository and change directory:
-git clone https://github.com/hannahfojas/complaintmgt.git
-cd complaintmgt
+* git clone https://github.com/hannahfojas/complaintmgt.git
+* cd complaintmgt
 
 Install all dependecies:
-npm run install-all
+* npm run install-all
 
 To start:
-npm run dev
+* npm run dev
 
 ---
 
