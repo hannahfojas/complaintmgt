@@ -41,11 +41,6 @@ const ComplaintForm = ({ complaints, setComplaints, editingComplaint, setEditing
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const authHdr = () => {
-    const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  };
-
   const handleSubmit = async (e) => {
   e.preventDefault();
   try {
@@ -75,12 +70,13 @@ const ComplaintForm = ({ complaints, setComplaints, editingComplaint, setEditing
           noteText = p.trim();
         }
 
-        const { data: updatedStatus } = await axiosInstance.patch(`/api/complaints/${_id}/status`, { status: form.status });
+        await axiosInstance.patch(`/api/complaints/${_id}/status`, { status: form.status });
         const { data: withNote } = await axiosInstance.post(`/api/complaints/${_id}/notes`, {
           text: noteText,
           author: 'Staff'
         });
         updatedDoc = withNote;
+        
       } else if (statusChanged) {
         const { data: updatedStatus } = await axiosInstance.patch(`/api/complaints/${_id}/status`, { status: form.status });
         updatedDoc = updatedStatus;
