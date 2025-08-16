@@ -437,7 +437,7 @@ describe('GetComplaints Function Test with Filter', () => {
     expect(findStub.calledOnceWith({ status: 'Resolved' })).to.be.true;
     expect(sortStub.calledOnceWith({ createdAt: -1 })).to.be.true;
     expect(res.json.calledWith(complaints)).to.be.true;
-    expect(res.status.called).to.be.false; // no error status on success
+    expect(res.status.called).to.be.false; // no error status
   });
 
   it('should return 500 on error', async () => {

@@ -9,6 +9,7 @@
     "dev": "nodemon server.js",
     "prod": "node server.js"
   },
+
   "dependencies": {
     "bcrypt": "^5.0.1",
     "chai": "^4.5.0",
@@ -20,6 +21,7 @@
     "mongoose": "^6.0.14",
     "request": "^2.88.2"
   },
+  
   "devDependencies": {
     "esm": "^3.2.25",
     "mocha": "^11.0.1",
@@ -29,4 +31,3 @@
   "author": "Task Manager Team",
   "license": "ISC"
 }
-
