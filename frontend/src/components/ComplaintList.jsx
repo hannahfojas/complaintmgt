@@ -33,7 +33,7 @@ const ComplaintList = ({ complaints, setComplaints, setEditingComplaint }) => {
   const note = window.prompt('Enter a resolution note (required):', '');
   if (!note || !note.trim()) { alert('Resolution note is required.'); return; }
   try {
-    const { data: closed } = await axiosInstance.patch(`/api/complaints/${id}/close-no-resolution`);
+    await axiosInstance.patch(`/api/complaints/${id}/close-no-resolution`);
     const { data: withNote } = await axiosInstance.post(`/api/complaints/${id}/notes`, {
       text: note.trim(),
       author: 'Staff'
