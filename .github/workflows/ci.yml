@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18] # Test on multiple Node.js versions
+        node-version: [22] # Test on multiple Node.js versions
 
 
     environment: MONGO_URI
