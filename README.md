@@ -29,25 +29,49 @@ Aside from the the User Management features of the system, the following feature
 
 
 ---
-**Installation and Software Prerequisites**
-* Node.js
-* MongoDB
-* VS Code Editor
-* Github
+**Software Prerequisites and Installation**
+
+* [Node.js](https://nodejs.org/en/download)
+* [MongoDB](https://www.mongodb.com)
+* [VS Code Editor](https://code.visualstudio.com)
+* [Git](https://git-scm.com)
 
 Please run the following commands in your command line.
 
 Clone the Original Repository and change directory:
-* git clone https://github.com/hannahfojas/complaintmgt.git
-* cd complaintmgt
+```bash
+git clone https://github.com/hannahfojas/complaintmgt.git
+cd complaintmgt
+```
+
 
 Install all dependecies:
-* npm run install-all
+```bash
+npm run install-all
+```
 
 To start:
-* npm run dev
+```bash
+npm run dev
+```
+
+
+If you opt to do a live set up, you will also be needing these:
+* [AWS EC2 Instance](https://aws.amazon.com/ec2/)
+* Install PM2 
+```bash
+npm install -g pm2
+```
+* Install Nginx
+```bash
+ mkdir www
+ cd www
+ sudo apt-get install nginx
+ sudo service nginx restart all
+```
 
 ---
 **Contact**
+
 For any issues, you may contact me through email N11947462@qut.edu.au
 
