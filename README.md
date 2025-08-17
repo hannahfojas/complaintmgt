@@ -48,4 +48,6 @@ To start:
 * npm run dev
 
 ---
+**Contact**
+For any issues, you may contact me through email N11947462@qut.edu.au
 
